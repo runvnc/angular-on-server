@@ -1,0 +1,16 @@
+body, label, div, p, input, select, span {
+	font-family: Helvetica, Arial, sans-serif;
+}
+
+label {
+	display: block;
+	margin-top: 5px;
+}
+
+.error {
+	color: red;
+}
+
+body {
+	margin: 20px;
+}
