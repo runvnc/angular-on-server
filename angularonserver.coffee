@@ -1,37 +1,70 @@
-jsdom = require('jsdom').jsdom
+jsdom = require './jsdom-with-xmlhttprequest'
+createdb = require './createdb'
+
+document = undefined
+window = undefined
+
+jsdom = jsdom.jsdom
 express = require 'express'
 fs = require 'fs'
 
+db = require 'rethinkdb'
+
 delay = (ms, func) -> setTimeout func, ms
+interval = (ms, func) -> setInterval func, ms
 
 express = require 'express'
 app = express()
 
 app.use express.static('public')
 
-app.listen 3001
-console.log 'Listening on port 3001'
+html = fs.readFileSync 'index.html', 'utf8'
 
-html = fs.readFileSync 'public/index.html'
-document = jsdom html
-window = document.createWindow()
-
-jsdom.jQueryify window, "http://localhost:3001/js/jquery.min.js", ->
-  console.log window.document.innerHTML
-
-app.get '/index.html', (req, res, next) ->
+app.get '/', (req, res, next) ->
   res.end html
 
+products = fs.readFileSync 'public/products.html'
+
+app.get '//products.html', (req, res, next) ->
+  console.log 'sending //products'
+  res.end products
+
+getProducts = (req, res) ->
+  if req.query.type is 'undefined'
+    db.table('products').run().collect (products) ->
+      res.end JSON.stringify(products)
+  else
+    db.table('products').filter({type: req.query.type}).run().collect (products) ->
+      res.end JSON.stringify(products)
+
+app.get '//products', (req, res, next) ->
+  getProducts req, res
+
+app.get '/products', (req, res, next) ->
+  getProducts req, res
+
 app.get "*", (req, res, next) ->
-  console.log window.angular
-  window.angular.element('body').scope()
-  window.angular.injector(['ng']).invoke ($rootScope) ->
-    scope = $rootScope.$new()
-    scope.$location.path req.path
-    delay 100, ->
+  console.log window.document.location
+  e = window.document.getElementById 'mainctl'
+  if window.angular?
+    scope = window.angular.element(e).scope()
+    scope.$apply ->
+      scope.setLocation req.url
+      return undefined
+    delay 50, ->
       console.log window.document.innerHTML
       res.end window.document.innerHTML
+  else
+    console.log 'window.angular is not defined'
+    console.log window.document.innerHTML
 
+process.on 'uncaughtException', (err) ->
+  console.log 'Uncaught exception:'
+  console.log err
+  console.log err.stack
 
-
-
+db.connect { host: 'localhost', port: 28015 }, (conn) ->
+  app.listen 3002
+  console.log 'Listening on port 3002'
+  document = jsdom html
+  window = document.createWindow({localPrefix: 'http://localhost:3002/'})

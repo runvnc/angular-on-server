@@ -1,0 +1,31 @@
+<!doctype html>
+<html ng-app="ngView" id="app">
+  <head>
+      <script>
+        window.onError = function(er) {
+          var msg = document.getElementById('msg');
+          msg.innerHTML = er.message;
+        }
+      </script>
+    <script src="http://localhost:3002/js/angular.min.js"></script>
+    <script src="http://localhost:3002/js/angular-resource.min.js"></script>
+    <script src="http://localhost:3002/js/script.js"></script>
+  </head>
+  <body>
+    <div id="msg"></div>
+    <div ng-controller="MainCntl" id="mainctl">
+      Choose:
+      <a href="/Catalog">All Products</a> |
+      <a href="/Catalog/outdoor">Outdoor Furniture</a> |
+      <a href="/Catalog/electronics">Electronics</a> |
+
+      <div prerendered></div>
+      <hr />
+
+      <script>
+        //var msg = document.getElementById('msg');
+        //msg.innerHTML = 'ok';
+      </script>
+    </div>
+  </body>
+</html>
